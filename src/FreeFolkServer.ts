@@ -4,9 +4,8 @@ import { ServerConfig } from './config/ServerConfig';
 import { Logger } from '@overnightjs/logger';
 import { DefaultController } from './default/Default.controller';
 import swagger from 'swagger-jsdoc';
-import { YoutubeController } from './youtube/YoutubeController';
-
 import * as swaggerUi from 'swagger-ui-express';
+import { YoutubeController } from './youtube/YoutubeController';
 
 export class FreeFolkServer extends Server {
 
