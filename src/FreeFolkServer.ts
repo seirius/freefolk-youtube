@@ -5,7 +5,7 @@ import { Logger } from '@overnightjs/logger';
 import { DefaultController } from './default/Default.controller';
 import swagger from 'swagger-jsdoc';
 import * as swaggerUi from 'swagger-ui-express';
-import { YoutubeController } from './youtube/YoutubeController';
+import { YoutubeController } from './youtube/Youtube.controller';
 
 export class FreeFolkServer extends Server {
 
