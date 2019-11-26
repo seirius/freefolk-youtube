@@ -1,21 +1,21 @@
 {
-  "name": "freefolk-micro-template",
+  "name": "freefolk-youtube",
   "version": "1.0.0",
-  "description": "Freefolk nodejs microservice template",
+  "description": "Freefolk youtube microservice",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/seirius/freefolk-micro-template.git"
+    "url": "git+https://github.com/seirius/freefolk-youtube.git"
   },
   "author": "seirius",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/seirius/freefolk-micro-template/issues"
+    "url": "https://github.com/seirius/freefolk-youtube/issues"
   },
-  "homepage": "https://github.com/seirius/freefolk-micro-template#readme",
+  "homepage": "https://github.com/seirius/freefolk-youtube#readme",
   "dependencies": {
     "@overnightjs/core": "^1.6.9",
     "@overnightjs/logger": "^1.1.9",
