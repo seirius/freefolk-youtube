@@ -3,6 +3,7 @@ import { json, urlencoded } from 'body-parser';
 import { ServerConfig } from './config/ServerConfig';
 import { Logger } from '@overnightjs/logger';
 import { DefaultController } from './default/Default.controller';
+import { YoutubeController } from './youtube/YoutubeController';
 
 import * as swagger from 'swagger-jsdoc';
 import * as swaggerUi from 'swagger-ui-express';
@@ -28,6 +29,7 @@ export class FreeFolkServer extends Server {
         this.app.use(urlencoded({extended: true}));
         this.addControllers([
             new DefaultController(),
+            new YoutubeController(),
         ]);
         this.app.use(
             '/swagger',
