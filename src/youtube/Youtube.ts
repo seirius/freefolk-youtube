@@ -1,6 +1,6 @@
 import { google, youtube_v3 } from "googleapis";
 import { GaxiosResponse } from "gaxios";
-import { YoutubeConfig } from "./YoutubeConfig";
+import { YoutubeConfig } from "../config/YoutubeConfig";
 const youtube = google.youtube("v3");
 
 export class Youtube {
