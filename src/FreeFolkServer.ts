@@ -18,8 +18,8 @@ export class FreeFolkServer extends Server {
             apis: ['**/*.controller.*'],
             swaggerDefinition: {
                 info: {
-                    description: 'Theater API',
-                    title: 'Movie theater',
+                    description: 'Youtube API',
+                    title: 'Youtube',
                     version: '1.0.0',
                 },
             },
