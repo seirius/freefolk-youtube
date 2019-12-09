@@ -23,6 +23,8 @@ import { Catch } from "../error/ErrorDeco";
  *              type: string
  *          disabled:
  *              type: boolean
+ *          author:
+ *              type: string
  */
 @Controller('')
 export class YoutubeController {

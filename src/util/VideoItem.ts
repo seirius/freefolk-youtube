@@ -9,6 +9,7 @@ export interface IVideoItem {
     thumbnailUrl: string;
     duration: string;
     disabled: boolean;
+    author: string;
 }
 
 export class VideoItemUtil {
@@ -22,6 +23,7 @@ export class VideoItemUtil {
                 thumbnailUrl: thumbnails ? thumbnails.high.url : "",
                 duration: Time.youtubeDuration(item.contentDetails.duration),
                 disabled: false,
+                author: item.snippet.channelTitle
             };
         });
     }
