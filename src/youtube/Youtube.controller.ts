@@ -62,7 +62,7 @@ export class YoutubeController {
     @Post("list")
     @Catch
     public async list(req: Request, res: Response): Promise<void> {
-        const { data: { items } } = await Youtube.list(req.body);
+        const items = await Youtube.list(req.body);
         res.status(OK).json({
             videos: VideoItemUtil.schemaListToVideoItemList(items),
         });
@@ -123,7 +123,7 @@ export class YoutubeController {
             },
         } = response;
         const ids = itemIds.map((item) => item.snippet.resourceId.videoId);
-        const { data: { items }} = (await Youtube.list({ ids }));
+        const items = (await Youtube.list({ ids }));
         res.status(OK).json({
             nextPageToken,
             prevPageToken,
@@ -188,12 +188,52 @@ export class YoutubeController {
             }
         } = response;
         const ids = itemIds.map((item) => item.id.videoId);
-        const { data: { items }} = await Youtube.list({ ids });
+        const items = await Youtube.list({ ids });
         res.status(OK).json({
             nextPageToken,
             prevPageToken,
             totalResults,
             resultsPerPage,
+            videos: VideoItemUtil.schemaListToVideoItemList(items),
+        });
+    }
+
+    /**
+     * @swagger
+     * /entire-playlist:
+     *  post:
+     *      tags:
+     *          - youtube
+     *      parameters:
+     *          - in: body
+     *            name: args
+     *            required: true
+     *            schema:
+     *              type: object
+     *              required: 
+     *                  - id
+     *              properties:
+     *                  id:
+     *                      type: string
+     *      responses:
+     *          200:
+     *              description: video list
+     *              schema:
+     *                  type: object
+     *                  properties:
+     *                      videos:
+     *                          type: array
+     *                          items:
+     *                              $ref: '#/definitions/VideoItem'
+     *      
+     */
+    @Post("entire-playlist")
+    @Catch
+    public async entirePlaylist(req: Request, res: Response): Promise<void> {
+        const itemIds = await Youtube.entirePlaylist(req.body);
+        const ids = itemIds.map((item) => item.snippet.resourceId.videoId);
+        const items = (await Youtube.list({ ids }));
+        res.status(OK).json({
             videos: VideoItemUtil.schemaListToVideoItemList(items),
         });
     }
