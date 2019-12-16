@@ -1,6 +1,6 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { YoutubeController } from "./youtube.controller";
-import { ListResponseDto, SearchResponseDto } from "./youtube.dto";
+import { SearchResponseDto } from "./youtube.dto";
 import { YoutubeService } from "./youtube.service";
 
 describe("YoutubeController", () => {
