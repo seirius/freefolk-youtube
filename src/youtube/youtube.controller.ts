@@ -16,9 +16,7 @@ export class YoutubeController {
         description: "Youtube list",
         type: ListResponseDto
     })
-    public async list(@Body() body: ListDto): Promise<{
-        videos: VideoItem[];
-    }> {
+    public async list(@Body() body: ListDto): Promise<ListResponseDto> {
         const items = await this.youtubeService.list(body);
         return {
             videos: VideoItemUtil.schemaListToVideoItemList(items)
