@@ -2,7 +2,8 @@ import { Injectable } from "@nestjs/common";
 import { google, youtube_v3 } from "googleapis";
 import { GaxiosResponse } from "gaxios";
 import { YoutubeConfig } from "./../config/YoutubeConfig";
-import { ApiProperty } from "@nestjs/swagger";
+import { UrlUtil, VideoItemUtil } from "./../util/Videoitem";
+import { ResolveUserSearchDto, ResolveUserSearchResponseDto } from "./youtube.dto";
 const youtube = google.youtube("v3");
 
 @Injectable()
@@ -21,7 +22,7 @@ export class YoutubeService {
         const { data: { items } } = await youtube.videos.list({
             key: YoutubeConfig.YOUTUBE_API_KEY,
             id: idChain,
-            part: part && part.length ? part.join(",") : "snippet, contentDetails, id"
+            part: part && part.length ? part.join(",") : "snippet, contentDetails, id",
         });
 
         if (ids.length) {
@@ -45,8 +46,8 @@ export class YoutubeService {
         const {
             data: {
                 nextPageToken,
-                items
-            }
+                items,
+            },
         } = await this.playlist({id, pageToken});
         if (nextPageToken) {
             items.push(...(await this.entirePlaylist({id, pageToken: nextPageToken})));
@@ -63,6 +64,48 @@ export class YoutubeService {
             maxResults: maxResults ? maxResults : this.maxResults,
             pageToken,
         });
+    }
+
+    public async resolveUserSearch({text, pageToken, maxResults}: ResolveUserSearchDto): Promise<ResolveUserSearchResponseDto> {
+        if (UrlUtil.isUrl(text)) {
+            const {videoId, playlistId} = await UrlUtil.getVideosId(text);
+            if (videoId) {
+                const videos = await this.list({ids: [videoId]});
+                return {videos: VideoItemUtil.schemaListToVideoItemList(videos)};
+            } else {
+                const {
+                    data: {
+                        nextPageToken,
+                        pageInfo: {
+                            totalResults,
+                        },
+                        items: itemIds,
+                    },
+                } = (await this.playlist({id: playlistId, pageToken, maxResults}));
+                const ids = itemIds.map((item) => item.snippet.resourceId.videoId);
+                const items = (await this.list({ ids }));
+                return {
+                    videos: VideoItemUtil.schemaListToVideoItemList(items),
+                    nextPageToken, totalResults,
+                };
+            }
+        } else {
+            const {
+                data: {
+                    nextPageToken,
+                    pageInfo: {
+                        totalResults,
+                    },
+                    items: itemIds,
+                },
+            } = (await this.search({q: text, pageToken, maxResults}));
+            const ids = itemIds.map((item) => item.id.videoId);
+            const items = await this.list({ ids });
+            return {
+                videos: VideoItemUtil.schemaListToVideoItemList(items),
+                nextPageToken, totalResults,
+            };
+        }
     }
 
 }

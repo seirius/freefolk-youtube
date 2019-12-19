@@ -1,4 +1,4 @@
-import { ApiProperty, ApiResponse } from "@nestjs/swagger";
+import { ApiProperty } from "@nestjs/swagger";
 import { VideoItem } from "./../util/Videoitem";
 
 export class ListDto {
@@ -78,4 +78,26 @@ export class EntirePlaylistDto {
 export class EntirePlaylistResponseDto {
     @ApiProperty({ type: [VideoItem]})
     videos: VideoItem[];
+}
+
+export class ResolveUserSearchDto {
+    @ApiProperty()
+    text: string;
+
+    @ApiProperty()
+    pageToken?: string;
+
+    @ApiProperty()
+    maxResults?: number;
+}
+
+export class ResolveUserSearchResponseDto {
+    @ApiProperty({ type: [VideoItem]})
+    videos: VideoItem[];
+
+    @ApiProperty()
+    nextPageToken?: string;
+
+    @ApiProperty()
+    totalResults?: number;
 }

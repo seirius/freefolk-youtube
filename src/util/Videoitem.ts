@@ -2,6 +2,8 @@ import { URL } from "url";
 import { youtube_v3 } from "googleapis";
 import { Time } from "../youtube/Time";
 import { ApiProperty } from "@nestjs/swagger";
+import Axios from "axios";
+import { Logger } from "@nestjs/common";
 
 export class VideoItem {
     @ApiProperty()
@@ -45,7 +47,9 @@ export class VideoItemUtil {
 
 export class UrlUtil {
 
-    public static readonly YOUTUBE_HOST = 
+    private static readonly logger = new Logger(UrlUtil.name);
+
+    public static readonly YOUTUBE_HOST =
         process.env.YOUTUBE_HOST ? process.env.YOUTUBE_HOST : "https://www.youtube.com/watch";
 
     public static convertId(id: string): string {
@@ -54,4 +58,63 @@ export class UrlUtil {
         return url.toString();
     }
 
+    public static async getVideosId(url: string): Promise<IVideosIdResponse> {
+        let videoId: string;
+        let playlistId: string;
+        try {
+            const unshortenedUrl = await UrlUtil.getUnshortenedUrl(url);
+            if (unshortenedUrl) {
+                playlistId = UrlUtil.getUrlParams(unshortenedUrl, "list");
+                if (!playlistId) {
+                    videoId = UrlUtil.getUrlParams(unshortenedUrl, "v");
+                }
+            }
+        } catch (error) {
+            UrlUtil.logger.log(error);
+        }
+
+        return {videoId, playlistId};
+    }
+
+    public static isUrl(value: string): boolean {
+        try {
+            // tslint:disable-next-line: no-unused-expression
+            new URL(value);
+            return true;
+        } catch (error) {
+            return false;
+        }
+    }
+
+    public static getUrlParams(value: string, paramName: string): string | null {
+        if (UrlUtil.isUrl(value)) {
+            return new URL(value).searchParams.get(paramName);
+        }
+        return null;
+    }
+
+    public static async getUnshortenedUrl(url: string): Promise<string | undefined> {
+        const response = await Axios.get(url);
+        if (response && response.request && response.request.res && response.request.res.responseUrl) {
+            return response.request.res.responseUrl;
+        }
+    }
+
+}
+
+export interface IVideosIdResponse {
+    videoId?: string | null;
+    playlistId?: string | null;
+}
+
+export interface IResolveUserSearchArgs {
+    text: string;
+    pageToken: string;
+    maxResults: number;
+}
+
+export interface IResolveUserSearchResponse {
+    videos: VideoItem[];
+    pageToken?: string;
+    totalResults?: number;
 }
