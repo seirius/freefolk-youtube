@@ -40,6 +40,7 @@
     "googleapis": "^46.0.0",
     "moment": "^2.24.0",
     "moment-duration-format": "^2.3.2",
+    "nest-mqtt-client": "git+https://github.com/seirius/nest-mqtt-client.git",
     "reflect-metadata": "^0.1.13",
     "rimraf": "^3.0.0",
     "rxjs": "^6.5.3",
