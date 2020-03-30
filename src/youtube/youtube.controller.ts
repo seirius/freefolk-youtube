@@ -1,48 +1,77 @@
-import { Controller, Post, Body, HttpCode, HttpStatus } from "@nestjs/common";
+import { Controller, HttpCode, HttpStatus, Get, Query } from "@nestjs/common";
 import { YoutubeService } from "./youtube.service";
 import { VideoItemUtil } from "./../util/Videoitem";
 import {
-    ListDto,
     ListResponseDto,
-    PlaylistDto,
     PlaylistResponseDto,
-    SearchDto,
     SearchResponseDto,
-    EntirePlaylistDto,
     EntirePlaylistResponseDto,
     ResolveUserSearchResponseDto,
-    ResolveUserSearchDto,
 } from "./youtube.dto";
-import { ApiResponse } from "@nestjs/swagger";
+import { ApiResponse, ApiQuery } from "@nestjs/swagger";
 
 @Controller()
 export class YoutubeController {
 
     constructor(private readonly youtubeService: YoutubeService) {}
 
-    @Post("list")
+    @Get("list")
     @HttpCode(HttpStatus.OK)
     @ApiResponse({
         status: HttpStatus.OK,
         description: "Youtube list",
         type: ListResponseDto,
     })
-    public async list(@Body() body: ListDto): Promise<ListResponseDto> {
-        const items = await this.youtubeService.list(body);
+    @ApiQuery({
+        name: "id",
+        type: [String],
+        required: true,
+    })
+    @ApiQuery({
+        name: "part",
+        type: [String],
+        required: false,
+    })
+    public async list(
+        @Query("id") id: any,
+        @Query("part") part?: any,
+    ): Promise<ListResponseDto> {
+        const items = await this.youtubeService.list({
+            ids: typeof id === "string" ? [id] : id,
+            part: typeof part === "string" ? [part] : part,
+        });
         return {
             videos: VideoItemUtil.schemaListToVideoItemList(items),
         };
     }
 
-    @Post("playlist")
+    @Get("playlist")
     @HttpCode(HttpStatus.OK)
     @ApiResponse({
         status: HttpStatus.OK,
         description: "Youtube playlist",
         type: PlaylistResponseDto,
     })
-    public async playlist(@Body() playlistDto: PlaylistDto): Promise<PlaylistResponseDto> {
-        const response = (await this.youtubeService.playlist(playlistDto));
+    @ApiQuery({
+        name: "id",
+        type: String,
+        required: true,
+    })
+    @ApiQuery({
+        name: "pageToken",
+        type: String,
+        required: false,
+    })
+    @ApiQuery({
+        name: "maxResults",
+        type: Number,
+        required: false,
+    })
+    public async playlist(
+        @Query("id") id: string,
+        @Query("pageToken") pageToken?: string,
+        @Query("maxResults") maxResults?: number,
+    ): Promise<PlaylistResponseDto> {
         const {
             data: {
                 nextPageToken,
@@ -53,9 +82,9 @@ export class YoutubeController {
                 },
                 items: itemIds,
             },
-        } = response;
+        } = await this.youtubeService.playlist({ id, pageToken, maxResults });
         const ids = itemIds.map((item) => item.snippet.resourceId.videoId);
-        const items = (await this.youtubeService.list({ ids }));
+        const items = await this.youtubeService.list({ ids });
         return {
             nextPageToken,
             prevPageToken,
@@ -65,15 +94,36 @@ export class YoutubeController {
         };
     }
 
-    @Post("search")
+    @Get("search")
     @HttpCode(HttpStatus.OK)
     @ApiResponse({
         status: HttpStatus.OK,
         description: "Search list",
         type: SearchResponseDto,
     })
-    public async search(@Body() searchDto: SearchDto): Promise<SearchResponseDto> {
-        const response = (await this.youtubeService.search(searchDto));
+    @ApiQuery({
+        name: "q",
+        type: String,
+        required: true,
+    })
+    @ApiQuery({
+        name: "maxResults",
+        type: Number,
+        required: false,
+    })
+    @ApiQuery({
+        name: "pageToken",
+        type: String,
+        required: false,
+    })
+    public async search(
+        @Query("q") q: string,
+        @Query("maxResults") maxResults?: number,
+        @Query("pageToken") pageToken?: string,
+    ): Promise<SearchResponseDto> {
+        const response = (await this.youtubeService.search({
+            q, maxResults, pageToken,
+        }));
         const {
             data: {
                 nextPageToken,
@@ -96,14 +146,19 @@ export class YoutubeController {
         };
     }
 
-    @Post("entire-playlist")
+    @Get("entire-playlist")
     @HttpCode(HttpStatus.OK)
     @ApiResponse({
         status: HttpStatus.OK,
         description: "Entire playlist",
         type: EntirePlaylistResponseDto,
     })
-    public async entirePlaylist(@Body() {id}: EntirePlaylistDto): Promise<EntirePlaylistResponseDto> {
+    @ApiQuery({
+        name: "id",
+        type: String,
+        required: true,
+    })
+    public async entirePlaylist(@Query("id") id: string): Promise<EntirePlaylistResponseDto> {
         const itemIds = await this.youtubeService.entirePlaylist({id});
         const ids = itemIds.map((item) => item.snippet.resourceId.videoId);
         const items = (await this.youtubeService.list({ ids }));
@@ -112,15 +167,36 @@ export class YoutubeController {
         };
     }
 
-    @Post("resolve-user-search")
+    @Get("resolve-user-search")
     @HttpCode(HttpStatus.OK)
     @ApiResponse({
         status: HttpStatus.OK,
         description: "resolve user's input for a search",
         type: ResolveUserSearchResponseDto,
     })
-    public resolveUserSearch(@Body() resolveUserSearchDto: ResolveUserSearchDto): Promise<ResolveUserSearchResponseDto> {
-        return this.youtubeService.resolveUserSearch(resolveUserSearchDto);
+    @ApiQuery({
+        name: "text",
+        type: String,
+        required: true,
+    })
+    @ApiQuery({
+        name: "pageToken",
+        type: String,
+        required: false,
+    })
+    @ApiQuery({
+        name: "maxResults",
+        type: Number,
+        required: false,
+    })
+    public resolveUserSearch(
+        @Query("text") text: string,
+        @Query("pageToken") pageToken?: string,
+        @Query("maxResults") maxResults?: number,
+    ): Promise<ResolveUserSearchResponseDto> {
+        return this.youtubeService.resolveUserSearch({
+            text, pageToken, maxResults,
+        });
     }
 
 }

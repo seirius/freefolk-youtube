@@ -3,7 +3,8 @@ import { google, youtube_v3 } from "googleapis";
 import { GaxiosResponse } from "gaxios";
 import { YoutubeConfig } from "./../config/YoutubeConfig";
 import { UrlUtil, VideoItemUtil } from "./../util/Videoitem";
-import { ResolveUserSearchDto, ResolveUserSearchResponseDto } from "./youtube.dto";
+import { ResolveUserSearchResponseDto } from "./youtube.dto";
+import { CACHE } from "src/redis/redis.cache";
 const youtube = google.youtube("v3");
 
 @Injectable()
@@ -11,6 +12,7 @@ export class YoutubeService {
 
     private readonly maxResults = 50;
 
+    @CACHE.cache()
     public async list({ids, part}: IListArgs): Promise<youtube_v3.Schema$Video[]> {
         let items50 = [...ids];
         if (ids.length > this.maxResults) {
@@ -32,6 +34,7 @@ export class YoutubeService {
         return items;
     }
 
+    @CACHE.cache()
     public playlist({ id, maxResults, pageToken }: IPlaylistArgs): Promise<GaxiosResponse<youtube_v3.Schema$PlaylistItemListResponse>> {
         return youtube.playlistItems.list({
             key: YoutubeConfig.YOUTUBE_API_KEY,
@@ -56,6 +59,7 @@ export class YoutubeService {
         return items;
     }
 
+    @CACHE.cache()
     public search({ q, maxResults, pageToken}: ISearchArgs): Promise<GaxiosResponse<youtube_v3.Schema$SearchListResponse>> {
         return youtube.search.list({
             key: YoutubeConfig.YOUTUBE_API_KEY,
@@ -66,7 +70,11 @@ export class YoutubeService {
         });
     }
 
-    public async resolveUserSearch({text, pageToken, maxResults}: ResolveUserSearchDto): Promise<ResolveUserSearchResponseDto> {
+    public async resolveUserSearch({text, pageToken, maxResults}: {
+        text: string;
+        pageToken?: string;
+        maxResults?: number;
+    }): Promise<ResolveUserSearchResponseDto> {
         if (UrlUtil.isUrl(text)) {
             const {videoId, playlistId} = await UrlUtil.getVideosId(text);
             if (videoId) {
@@ -83,7 +91,7 @@ export class YoutubeService {
                     },
                 } = (await this.playlist({id: playlistId, pageToken, maxResults}));
                 const ids = itemIds.map((item) => item.snippet.resourceId.videoId);
-                const items = (await this.list({ ids }));
+                const items = await this.list({ ids });
                 return {
                     videos: VideoItemUtil.schemaListToVideoItemList(items),
                     nextPageToken, totalResults,
@@ -98,7 +106,7 @@ export class YoutubeService {
                     },
                     items: itemIds,
                 },
-            } = (await this.search({q: text, pageToken, maxResults}));
+            } = await this.search({q: text, pageToken, maxResults});
             const ids = itemIds.map((item) => item.id.videoId);
             const items = await this.list({ ids });
             return {
